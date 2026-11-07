@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">Taller 3</string>
+
+    <!-- Login / Registro -->
+    <string name="login_title">Iniciar sesión</string>
+    <string name="register_title">Crear cuenta</string>
+    <string name="label_name">Nombre</string>
+    <string name="label_email">Correo electrónico</string>
+    <string name="label_password">Contraseña</string>
+    <string name="label_phone">Número de teléfono</string>
+    <string name="btn_login">Ingresar</string>
+    <string name="btn_register">Registrarme</string>
+    <string name="go_to_register">¿No tienes cuenta? Regístrate</string>
+    <string name="go_to_login">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="btn_take_photo">Tomar foto</string>
+
+    <!-- Menú principal -->
+    <string name="menu_profile">Mi perfil</string>
+    <string name="menu_logout">Cerrar sesión</string>
+
+    <!-- Mapa -->
+    <string name="switch_location">Compartir mi ubicación</string>
+    <string name="status_online">En línea</string>
+    <string name="status_offline">Desconectado</string>
+    <string name="marker_you">Tú</string>
+
+    <!-- Perfil -->
+    <string name="profile_title">Mi perfil</string>
+    <string name="label_new_password">Nueva contraseña</string>
+    <string name="btn_save">Guardar cambios</string>
+    <string name="btn_change_photo">Cambiar foto</string>
+
+    <!-- Permisos -->
+    <string name="permission_location_rationale">La app necesita tu ubicación para mostrarte en el mapa.</string>
+    <string name="permission_camera_rationale">La app necesita la cámara para tomar tu foto de perfil.</string>
+
+    <!-- Errores -->
+    <string name="error_empty_fields">Completa todos los campos</string>
+    <string name="error_invalid_email">Correo no válido</string>
+    <string name="error_short_password">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="error_auth">Error de autenticación</string>
+    <string name="msg_profile_updated">Perfil actualizado</string>
+
+    <!-- Accesibilidad -->
+    <string name="cd_profile_photo">Foto de perfil</string>
+    <string name="cd_menu">Menú</string>
+</resources>
