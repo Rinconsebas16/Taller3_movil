@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taller_3.R
+import com.example.taller_3.data.firebase.UserRepository
 import com.example.taller_3.ui.components.HomeTopBar
 import com.example.taller_3.ui.components.LocationSwitch
 import com.example.taller_3.utils.PermissionUtils
@@ -44,12 +45,20 @@ fun HomeScreen(
     var confirmLogout by remember { mutableStateOf(false) }
 
     val isTrackingActive by mapViewModel.isTrackingActive.collectAsState()
+    val currentRoute by mapViewModel.currentRoute.collectAsState()
+    val userRepository = remember { UserRepository() }
+
+    LaunchedEffect(Unit) {
+        userRepository.getActiveUsersFlow().collect { users ->
+            mapViewModel.updateRemoteUsers(users)
+        }
+    }
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val isGranted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                        permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] == true
+                permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] == true
 
         if (isGranted) {
             mapViewModel.startLocationTracking()
@@ -79,7 +88,7 @@ fun HomeScreen(
             AndroidView(
                 factory = { ctx ->
                     MapView(ctx).apply {
-                        mapboxMap.loadStyle(Style.MAPBOX_STREETS)
+                        getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS)
                     }
                 },
                 update = { mapView ->
@@ -89,9 +98,12 @@ fun HomeScreen(
                         val polylineManager = annotationPlugin.createPolylineAnnotationManager()
                         polylineManager.deleteAll()
 
-                        val points = currentRoute.map { Point.fromLngLat(it.longitude, it.latitude) }
+                        val mapboxPoints = currentRoute.map { latLng ->
+                            Point.fromLngLat(latLng.longitude, latLng.latitude)
+                        }
+
                         val polylineOptions = PolylineAnnotationOptions()
-                            .withPoints(points)
+                            .withPoints(mapboxPoints)
                             .withLineWidth(4.0)
                             .withLineColor("#1E88E5")
 

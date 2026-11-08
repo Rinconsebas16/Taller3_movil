@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.taller_3.R
 import com.example.taller_3.utils.PermissionUtils
 
+
 /**
  * Devuelve una funcion que abre la camara para tomar la foto de perfil.
  * Pide el permiso CAMERA si hace falta y entrega el Bitmap en onPhoto.
@@ -35,7 +36,7 @@ fun rememberTakePhoto(onPhoto: (Bitmap) -> Unit): () -> Unit {
     }
 
     return {
-        if (PermissionUtils.isGranted(context, Manifest.permission.CAMERA)) {
+        if (PermissionUtils.hasCameraPermission(context)) {
             cameraLauncher.launch(null)
         } else {
             permissionLauncher.launch(Manifest.permission.CAMERA)

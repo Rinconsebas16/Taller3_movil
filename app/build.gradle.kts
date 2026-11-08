@@ -67,7 +67,7 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:4.3.3")
 
     // Mapbox SDK
-    implementation("com.mapbox.maps:android:11.2.0")
+    implementation("com.mapbox.maps:android:10.16.1")
 
     // Carga de imagenes por URL
     implementation(libs.coil.compose)

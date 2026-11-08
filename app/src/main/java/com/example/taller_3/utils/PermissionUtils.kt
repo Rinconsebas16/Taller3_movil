@@ -18,5 +18,12 @@ object PermissionUtils {
             ) == PackageManager.PERMISSION_GRANTED
         }
     }
+
+    // Función para verificar el permiso de cámara
+    fun hasCameraPermission(context: Context): Boolean {
+        return ContextCompat.checkSelfPermission(
+            context, Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
 }
 
