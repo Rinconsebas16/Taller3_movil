@@ -1,18 +1,19 @@
 package com.example.taller_3.model
 
 /**
- * Datos del usuario guardados en Firestore (colección "users", documento = uid).
- * El email y el password los maneja Firebase Authentication;
- * el password NUNCA se guarda en la base de datos.
- * Los valores por defecto son necesarios para que Firestore pueda deserializar (toObject).
+ * Documento del usuario en Firestore: coleccion "users", id del documento = uid.
+ *
+ * - El email y el password los maneja Firebase Authentication. El password NUNCA se guarda aqui.
+ * - enLinea, latitud y longitud NO se piden en el registro: se inicializan en false / 0.0 / 0.0.
+ * - Se usan "var" con valores por defecto para que Firestore pueda crear el objeto con toObject().
  */
 data class User(
-    val uid: String = "",
-    val name: String = "",
-    val email: String = "",
-    val phone: String = "",
-    val photoUrl: String = "",      // URL de la foto en Firebase Storage
-    val online: Boolean = false,    // NO se pide en el registro
-    val latitude: Double = 0.0,     // NO se pide en el registro
-    val longitude: Double = 0.0     // NO se pide en el registro
+    var uid: String = "",
+    var nombre: String = "",
+    var email: String = "",
+    var telefono: String = "",
+    var photoUrl: String = "",
+    var enLinea: Boolean = false,
+    var latitud: Double = 0.0,
+    var longitud: Double = 0.0
 )

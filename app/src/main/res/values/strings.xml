@@ -13,21 +13,30 @@
     <string name="go_to_register">¿No tienes cuenta? Regístrate</string>
     <string name="go_to_login">¿Ya tienes cuenta? Inicia sesión</string>
     <string name="btn_take_photo">Tomar foto</string>
+    <string name="hint_take_photo">Toca la cámara para tomar tu foto de perfil</string>
 
     <!-- Menú principal -->
     <string name="menu_profile">Mi perfil</string>
     <string name="menu_logout">Cerrar sesión</string>
+    <string name="logout_confirm">¿Seguro que quieres cerrar sesión? Dejarás de compartir tu ubicación.</string>
+    <string name="btn_cancel">Cancelar</string>
 
     <!-- Mapa -->
     <string name="switch_location">Compartir mi ubicación</string>
     <string name="status_online">En línea</string>
     <string name="status_offline">Desconectado</string>
     <string name="marker_you">Tú</string>
+    <string name="home_map_placeholder">Aquí va el mapa</string>
 
     <!-- Perfil -->
     <string name="profile_title">Mi perfil</string>
+    <string name="section_personal_data">Datos personales</string>
+    <string name="section_password">Cambiar contraseña</string>
+    <string name="label_current_password">Contraseña actual</string>
     <string name="label_new_password">Nueva contraseña</string>
+    <string name="label_confirm_password">Confirmar nueva contraseña</string>
     <string name="btn_save">Guardar cambios</string>
+    <string name="btn_change_password">Actualizar contraseña</string>
     <string name="btn_change_photo">Cambiar foto</string>
 
     <!-- Permisos -->
@@ -36,12 +45,28 @@
 
     <!-- Errores -->
     <string name="error_empty_fields">Completa todos los campos</string>
+    <string name="error_empty_name">Escribe tu nombre</string>
     <string name="error_invalid_email">Correo no válido</string>
     <string name="error_short_password">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="error_password_mismatch">Las contraseñas no coinciden</string>
+    <string name="error_invalid_phone">Número de teléfono no válido</string>
+    <string name="error_email_in_use">Ya existe una cuenta con ese correo</string>
+    <string name="error_wrong_credentials">Correo o contraseña incorrectos</string>
+    <string name="error_network">Sin conexión a internet</string>
     <string name="error_auth">Error de autenticación</string>
+    <string name="error_auth_disabled">El inicio con correo y contraseña no está activado en Firebase (Authentication → Sign-in method)</string>
+    <string name="error_permission_denied">Firebase rechazó la operación: revisa las reglas de Firestore/Storage</string>
+    <string name="error_db_missing">La base de datos Firestore no existe: créala en la consola de Firebase</string>
+    <string name="error_generic">Ocurrió un error, inténtalo de nuevo</string>
+
+    <!-- Mensajes -->
     <string name="msg_profile_updated">Perfil actualizado</string>
+    <string name="msg_password_updated">Contraseña actualizada</string>
+    <string name="msg_photo_updated">Foto de perfil actualizada</string>
 
     <!-- Accesibilidad -->
     <string name="cd_profile_photo">Foto de perfil</string>
+    <string name="cd_take_photo">Tomar foto de perfil</string>
     <string name="cd_menu">Menú</string>
+    <string name="cd_back">Volver</string>
 </resources>
