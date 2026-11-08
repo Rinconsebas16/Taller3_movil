@@ -61,6 +61,14 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // Google Maps para Jetpack Compose y GPS
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation("com.google.maps.android:maps-compose:4.3.3")
+
+    // Mapbox SDK
+    implementation("com.mapbox.maps:android:11.2.0")
+
     // Carga de imagenes por URL
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
