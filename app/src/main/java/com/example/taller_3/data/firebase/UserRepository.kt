@@ -1,6 +1,7 @@
 package com.example.taller_3.data.firebase
 
 import com.example.taller_3.model.User
+import com.example.taller_3.utils.Constants
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.channels.awaitClose
@@ -12,7 +13,7 @@ import kotlinx.coroutines.tasks.await
 class UserRepository {
 
     private val db = FirebaseFirestore.getInstance()
-    private val usersCollection = db.collection("users")
+    private val usersCollection = db.collection(Constants.USERS_COLLECTION)
 
     // Métodos correspondientes a (Auth, Perfil y Registro)
 
@@ -21,17 +22,17 @@ class UserRepository {
     }
 
     suspend fun updatePhotoUrl(uid: String, photoUrl: String) {
-        usersCollection.document(uid).update("photoUrl", photoUrl).await()
+        usersCollection.document(uid).update(Constants.FIELD_PHOTO_URL, photoUrl).await()
     }
 
     suspend fun setOnline(uid: String, enLinea: Boolean) {
-        usersCollection.document(uid).update("enLinea", enLinea).await()
+        usersCollection.document(uid).update(Constants.FIELD_EN_LINEA, enLinea).await()
     }
 
     suspend fun updateProfile(uid: String, nombre: String, telefono: String) {
         val updates = mapOf(
-            "nombre" to nombre,
-            "telefono" to telefono
+            Constants.FIELD_NOMBRE to nombre.trim(),
+            Constants.FIELD_TELEFONO to telefono.trim()
         )
         usersCollection.document(uid).update(updates).await()
     }
@@ -51,9 +52,9 @@ class UserRepository {
 
     suspend fun updateUserLocation(uid: String, lat: Double, lng: Double, enLinea: Boolean) {
         val updates = mapOf(
-            "latitud" to lat,
-            "longitud" to lng,
-            "enLinea" to enLinea
+            Constants.FIELD_LATITUD to lat,
+            Constants.FIELD_LONGITUD to lng,
+            Constants.FIELD_EN_LINEA to enLinea
         )
         usersCollection.document(uid).update(updates).await()
     }
@@ -62,18 +63,25 @@ class UserRepository {
         setOnline(uid, enLinea)
     }
 
+    /**
+     * Usuarios EN LINEA en tiempo real (addSnapshotListener), maximo 100.
+     * Cuando alguien se desconecta deja de aparecer en la lista y el mapa lo quita.
+     */
     fun getActiveUsersFlow(): Flow<List<User>> = callbackFlow {
-        val listener = usersCollection.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                close(error)
-                return@addSnapshotListener
-            }
-            val users = snapshot?.documents?.mapNotNull { doc ->
-                doc.toObject(User::class.java)
-            } ?: emptyList()
+        val listener = usersCollection
+            .whereEqualTo(Constants.FIELD_EN_LINEA, true)
+            .limit(Constants.MAX_ONLINE_USERS)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val users = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(User::class.java)
+                } ?: emptyList()
 
-            trySend(users)
-        }
+                trySend(users)
+            }
         awaitClose { listener.remove() }
     }
 }

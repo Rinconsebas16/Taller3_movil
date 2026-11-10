@@ -26,7 +26,9 @@
     <string name="status_online">En línea</string>
     <string name="status_offline">Desconectado</string>
     <string name="marker_you">Tú</string>
-    <string name="home_map_placeholder">Aquí va el mapa</string>
+    <string name="location_sharing">Compartiendo ubicación</string>
+    <string name="location_off">Ubicación desactivada</string>
+    <string name="permission_location_denied">Se requieren permisos de ubicación para activar el rastreo</string>
 
     <!-- Perfil -->
     <string name="profile_title">Mi perfil</string>

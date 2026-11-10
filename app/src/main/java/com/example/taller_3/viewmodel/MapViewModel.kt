@@ -1,28 +1,32 @@
 package com.example.taller_3.viewmodel
 
 /*
-- Estado del mapa: posición propia, ruta propia (List<LatLng>), switch on/off,
-- mapa de usuarios en línea (uid -> User) y sus rutas (uid -> List<LatLng>).
-- Al apagar el switch: online=false y se borra la ruta propia.
+- Estado del mapa: posición propia, ruta propia (List<Point>), switch on/off,
+- mapa de usuarios en línea (uid -> User) y sus rutas (uid -> List<Point>).
+- Al apagar el switch: enLinea=false y se borra la ruta propia.
 - Si otro usuario se desconecta: se quita su marcador y su ruta.
 */
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taller_3.data.firebase.UserRepository
 import com.example.taller_3.data.location.LocationService
 import com.example.taller_3.model.User
-import com.google.android.gms.maps.model.LatLng
+import com.example.taller_3.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ListenerRegistration
+import com.mapbox.geojson.Point
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 typealias UsersMap = Map<String, User>
-typealias RoutesMap = Map<String, List<LatLng>>
+typealias RoutesMap = Map<String, List<Point>>
 
 class MapViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -30,36 +34,63 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     private val userRepository = UserRepository()
     private val auth = FirebaseAuth.getInstance()
     private var locationJob: Job? = null
+    private var usersJob: Job? = null
+    private var meListener: ListenerRegistration? = null
 
     // Estado del switch de rastreo (encendido / apagado)
     private val _isTrackingActive = MutableStateFlow(false)
     val isTrackingActive: StateFlow<Boolean> = _isTrackingActive.asStateFlow()
 
     // Lista de coordenadas de la ruta propia (Polyline)
-    private val _currentRoute = MutableStateFlow<List<LatLng>>(emptyList())
-    val currentRoute: StateFlow<List<LatLng>> = _currentRoute.asStateFlow()
+    private val _currentRoute = MutableStateFlow<List<Point>>(emptyList())
+    val currentRoute: StateFlow<List<Point>> = _currentRoute.asStateFlow()
 
     // Ubicación actual del usuario local
-    private val _currentLocation = MutableStateFlow<LatLng?>(null)
-    val currentLocation: StateFlow<LatLng?> = _currentLocation.asStateFlow()
+    private val _currentLocation = MutableStateFlow<Point?>(null)
+    val currentLocation: StateFlow<Point?> = _currentLocation.asStateFlow()
+
+    // Datos del usuario local (para su foto en el marcador)
+    private val _me = MutableStateFlow<User?>(null)
+    val me: StateFlow<User?> = _me.asStateFlow()
 
     // Usuarios remotos activos: Mapa de UID -> User
     private val _otherUsers = MutableStateFlow<UsersMap>(emptyMap())
     val otherUsers: StateFlow<UsersMap> = _otherUsers.asStateFlow()
 
-    // Rutas de usuarios remotos: Mapa de UID -> List<LatLng>
+    // Rutas de usuarios remotos: Mapa de UID -> List<Point>
     private val _otherRoutes = MutableStateFlow<RoutesMap>(emptyMap())
     val otherRoutes: StateFlow<RoutesMap> = _otherRoutes.asStateFlow()
 
+    /** Empieza a escuchar a los demás usuarios y al propio. Se puede llamar varias veces. */
+    fun startListening() {
+        val uid = auth.currentUser?.uid ?: return
+
+        if (meListener == null) {
+            meListener = userRepository.observeUser(uid) { _me.value = it }
+            // Si la app se cerró con el switch encendido, el usuario quedó "en línea": se corrige
+            if (!_isTrackingActive.value) {
+                viewModelScope.launch { runCatching { userRepository.setOnline(uid, false) } }
+            }
+        }
+
+        if (usersJob == null) {
+            usersJob = viewModelScope.launch {
+                userRepository.getActiveUsersFlow()
+                    .catch { e -> Log.e(TAG, "usuarios en línea", e) }
+                    .collect { users -> updateRemoteUsers(users) }
+            }
+        }
+    }
+
     fun startLocationTracking() {
+        val currentUid = auth.currentUser?.uid ?: return
         if (_isTrackingActive.value) return
         _isTrackingActive.value = true
 
-        val currentUid = auth.currentUser?.uid ?: return
-
         locationJob = viewModelScope.launch {
-            locationService.getLocationUpdates().collect { (lat, lng) ->
-                val newPoint = LatLng(lat, lng)
+            locationService.getLocationUpdates(Constants.LOCATION_INTERVAL_MS).collect { (lat, lng) ->
+                // OJO: Mapbox usa (longitud, latitud)
+                val newPoint = Point.fromLngLat(lng, lat)
                 _currentLocation.value = newPoint
                 _currentRoute.value = _currentRoute.value + newPoint
 
@@ -91,22 +122,40 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Al cerrar sesión: apaga el rastreo y deja de escuchar Firestore. */
+    fun onLogout() {
+        stopLocationTracking()
+        usersJob?.cancel()
+        usersJob = null
+        meListener?.remove()
+        meListener = null
+        _me.value = null
+        _otherUsers.value = emptyMap()
+        _otherRoutes.value = emptyMap()
+    }
+
     // Actualiza o remueve los datos de usuarios remotos (Sincronización Firestore)
     fun updateRemoteUsers(users: List<User>) {
         val currentUid = auth.currentUser?.uid
-        val activeUsersMap = mutableMapOf<String, User>()
-        val updatedRoutes = _otherRoutes.value.toMutableMap()
 
-        users.filter { it.uid != currentUid && it.enLinea }.forEach { user ->
-            activeUsersMap[user.uid] = user
-            val newPoint = LatLng(user.latitud, user.longitud)
-            val existingRoute = updatedRoutes[user.uid] ?: emptyList()
-            updatedRoutes[user.uid] = existingRoute + newPoint
-        }
+        val activeUsersMap = users
+            .filter { it.uid != currentUid && it.enLinea }
+            .filter { !(it.latitud == 0.0 && it.longitud == 0.0) } // aun sin posición
+            .associateBy { it.uid }
 
         // Elimina las rutas de los usuarios que ya no están en línea
-        val currentActiveUids = activeUsersMap.keys
-        updatedRoutes.keys.retainAll(currentActiveUids)
+        val updatedRoutes = _otherRoutes.value
+            .filterKeys { it in activeUsersMap.keys }
+            .toMutableMap()
+
+        activeUsersMap.values.forEach { user ->
+            val newPoint = Point.fromLngLat(user.longitud, user.latitud)
+            val existingRoute = updatedRoutes[user.uid] ?: emptyList()
+            // Solo se agrega el punto si la posición cambió
+            if (existingRoute.lastOrNull() != newPoint) {
+                updatedRoutes[user.uid] = existingRoute + newPoint
+            }
+        }
 
         _otherUsers.value = activeUsersMap
         _otherRoutes.value = updatedRoutes
@@ -114,6 +163,11 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         super.onCleared()
-        stopLocationTracking()
+        locationJob?.cancel()
+        meListener?.remove()
+    }
+
+    private companion object {
+        const val TAG = "MapViewModel"
     }
 }

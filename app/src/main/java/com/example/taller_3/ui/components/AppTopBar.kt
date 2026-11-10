@@ -1,7 +1,9 @@
 package com.example.taller_3.ui.components
 
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -10,22 +12,28 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.example.taller_3.R
 
-/** Barra superior de la pantalla principal con el menu de 2 opciones: Mi perfil y Cerrar sesion. */
+/**
+ * Barra superior de la pantalla principal con las 2 opciones del menu siempre visibles:
+ * - Mi perfil: tu foto de perfil (toca para abrir el perfil)
+ * - Cerrar sesion: icono de salida
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
+    photoUrl: String?,
     onProfile: () -> Unit,
     onLogout: () -> Unit
 ) {
-    var menuOpen by remember { mutableStateOf(false) }
     TopAppBar(
         title = { Text(stringResource(R.string.app_name)) },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -34,28 +42,27 @@ fun HomeTopBar(
             actionIconContentColor = MaterialTheme.colorScheme.onPrimary
         ),
         actions = {
-            IconButton(onClick = { menuOpen = true }) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_more_vert),
-                    contentDescription = stringResource(R.string.cd_menu)
+            // Opcion 1: Mi perfil (con la foto del usuario)
+            IconButton(onClick = onProfile) {
+                AsyncImage(
+                    model = photoUrl?.ifBlank { null },
+                    contentDescription = stringResource(R.string.menu_profile),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.ic_default_avatar),
+                    error = painterResource(R.drawable.ic_default_avatar),
+                    fallback = painterResource(R.drawable.ic_default_avatar),
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .border(2.dp, Color.White, CircleShape)
                 )
             }
-            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.menu_profile)) },
-                    leadingIcon = { Icon(painterResource(R.drawable.ic_person), contentDescription = null) },
-                    onClick = {
-                        menuOpen = false
-                        onProfile()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.menu_logout)) },
-                    leadingIcon = { Icon(painterResource(R.drawable.ic_logout), contentDescription = null) },
-                    onClick = {
-                        menuOpen = false
-                        onLogout()
-                    }
+            // Opcion 2: Cerrar sesion
+            IconButton(onClick = onLogout) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_logout),
+                    contentDescription = stringResource(R.string.menu_logout)
                 )
             }
         }

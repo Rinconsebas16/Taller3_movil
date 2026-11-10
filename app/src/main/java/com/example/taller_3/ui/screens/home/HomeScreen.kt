@@ -1,5 +1,6 @@
 package com.example.taller_3.ui.screens.home
 
+import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,27 +12,37 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taller_3.R
-import com.example.taller_3.data.firebase.UserRepository
 import com.example.taller_3.ui.components.HomeTopBar
 import com.example.taller_3.ui.components.LocationSwitch
+import com.example.taller_3.ui.components.UserMarker
+import com.example.taller_3.ui.components.UserPolyline
+import com.example.taller_3.ui.components.colorForUser
+import com.example.taller_3.ui.components.myMarkerColor
 import com.example.taller_3.utils.PermissionUtils
 import com.example.taller_3.viewmodel.AuthViewModel
 import com.example.taller_3.viewmodel.MapViewModel
 import com.mapbox.geojson.Point
-import com.mapbox.maps.MapView
-import com.mapbox.maps.Style
-import com.mapbox.maps.plugin.annotation.annotations
-import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
-import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
+import com.mapbox.maps.dsl.cameraOptions
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+
+/** Bogotá, para la cámara inicial antes de tener la ubicación del usuario. */
+private val DEFAULT_CENTER: Point = Point.fromLngLat(-74.0641630119028, 4.627389316647156)
 
 @Composable
 fun HomeScreen(
@@ -46,35 +57,53 @@ fun HomeScreen(
 
     val isTrackingActive by mapViewModel.isTrackingActive.collectAsState()
     val currentRoute by mapViewModel.currentRoute.collectAsState()
-    val userRepository = remember { UserRepository() }
+    val currentLocation by mapViewModel.currentLocation.collectAsState()
+    val me by mapViewModel.me.collectAsState()
+    val otherUsers by mapViewModel.otherUsers.collectAsState()
+    val otherRoutes by mapViewModel.otherRoutes.collectAsState()
 
-    LaunchedEffect(Unit) {
-        userRepository.getActiveUsersFlow().collect { users ->
-            mapViewModel.updateRemoteUsers(users)
-        }
-    }
+    // Escucha en tiempo real a los usuarios en línea (Firestore)
+    LaunchedEffect(Unit) { mapViewModel.startListening() }
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val isGranted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        val isGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
 
         if (isGranted) {
             mapViewModel.startLocationTracking()
         } else {
             mapViewModel.stopLocationTracking()
-            Toast.makeText(
-                context,
-                "Se requieren permisos de ubicación para activar el rastreo",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(context, R.string.permission_location_denied, Toast.LENGTH_SHORT).show()
         }
     }
+
+    // Cámara del mapa: empieza en Bogotá y sigue al usuario cuando hay ubicación
+    val mapViewportState = rememberMapViewportState {
+        setCameraOptions {
+            zoom(12.0)
+            center(DEFAULT_CENTER)
+        }
+    }
+    LaunchedEffect(currentLocation) {
+        currentLocation?.let { point ->
+            mapViewportState.easeTo(
+                cameraOptions {
+                    center(point)
+                    zoom(16.0)
+                }
+            )
+        }
+    }
+
+    val myColor = myMarkerColor()
+    val myLabel = stringResource(R.string.marker_you)
 
     Scaffold(
         topBar = {
             HomeTopBar(
+                photoUrl = me?.photoUrl,
                 onProfile = onOpenProfile,
                 onLogout = { confirmLogout = true }
             )
@@ -85,33 +114,39 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            AndroidView(
-                factory = { ctx ->
-                    MapView(ctx).apply {
-                        getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS)
+            MapboxMap(
+                modifier = Modifier.fillMaxSize(),
+                mapViewportState = mapViewportState,
+                scaleBar = { }
+            ) {
+                // Rutas de los demás usuarios en línea
+                otherRoutes.forEach { (uid, points) ->
+                    key(uid) { UserPolyline(points = points, color = colorForUser(uid)) }
+                }
+                // Mi ruta (se borra al apagar el switch porque la lista queda vacía)
+                UserPolyline(points = currentRoute, color = myColor)
+
+                // Marcadores de los demás usuarios, con su foto de perfil
+                otherUsers.values.forEach { user ->
+                    key(user.uid) {
+                        UserMarker(
+                            point = Point.fromLngLat(user.longitud, user.latitud),
+                            photoUrl = user.photoUrl,
+                            label = user.nombre,
+                            color = colorForUser(user.uid)
+                        )
                     }
-                },
-                update = { mapView ->
-                    // Si hay puntos en la ruta, dibujamos o actualizamos la Polyline en Mapbox
-                    if (currentRoute.isNotEmpty()) {
-                        val annotationPlugin = mapView.annotations
-                        val polylineManager = annotationPlugin.createPolylineAnnotationManager()
-                        polylineManager.deleteAll()
-
-                        val mapboxPoints = currentRoute.map { latLng ->
-                            Point.fromLngLat(latLng.longitude, latLng.latitude)
-                        }
-
-                        val polylineOptions = PolylineAnnotationOptions()
-                            .withPoints(mapboxPoints)
-                            .withLineWidth(4.0)
-                            .withLineColor("#1E88E5")
-
-                        polylineManager.create(polylineOptions)
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
+                }
+                // Mi marcador
+                currentLocation?.let { point ->
+                    UserMarker(
+                        point = point,
+                        photoUrl = me?.photoUrl.orEmpty(),
+                        label = myLabel,
+                        color = myColor
+                    )
+                }
+            }
 
             LocationSwitch(
                 checked = isTrackingActive,
@@ -127,8 +162,8 @@ fun HomeScreen(
                     }
                 },
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
+                    .align(Alignment.BottomCenter)
+                    .padding(24.dp)
             )
 
             if (authVm.loading) {
@@ -145,7 +180,7 @@ fun HomeScreen(
             confirmButton = {
                 TextButton(onClick = {
                     confirmLogout = false
-                    mapViewModel.stopLocationTracking()
+                    mapViewModel.onLogout()
                     onBeforeLogout()
                     authVm.logout(onLoggedOut)
                 }) { Text(stringResource(R.string.menu_logout)) }
