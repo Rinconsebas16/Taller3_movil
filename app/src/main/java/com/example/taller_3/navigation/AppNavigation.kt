@@ -48,12 +48,20 @@ fun AppNavigation() {
                 }
                 HomeRoute -> NavEntry(key) {
                     HomeScreen(
-                        onOpenProfile = { backStack.add(ProfileRoute) },
+                        onOpenProfile = {
+                            // Se envia el uid al perfil (como un extra de un Intent)
+                            AuthRepository().currentUser?.uid?.let { uid ->
+                                backStack.add(ProfileRoute(uid = uid))
+                            }
+                        },
                         onLoggedOut = { resetTo(LoginRoute) }
                     )
                 }
-                ProfileRoute -> NavEntry(key) {
-                    ProfileScreen(onBack = { goBack() })
+                is ProfileRoute -> NavEntry(key) {
+                    ProfileScreen(
+                        uid = key.uid,
+                        onBack = { goBack() }
+                    )
                 }
                 else -> NavEntry(key) { Text("Ruta desconocida") }
             }

@@ -46,10 +46,13 @@ class ProfileViewModel(
 
     private var listener: ListenerRegistration? = null
 
+    /** uid recibido desde la navegacion (ProfileRoute). */
+    private var uid: String? = null
+
     /** Empieza a escuchar el documento del usuario. Llamar al entrar a la pantalla. */
-    fun start() {
-        val uid = authRepo.currentUser?.uid ?: return
+    fun start(uid: String) {
         if (listener != null) return
+        this.uid = uid
         listener = userRepo.observeUser(uid) { updated ->
             val first = user == null
             user = updated
@@ -65,6 +68,7 @@ class ProfileViewModel(
     fun stop() {
         listener?.remove()
         listener = null
+        uid = null
         user = null
         currentPassword = ""
         newPassword = ""
@@ -76,7 +80,7 @@ class ProfileViewModel(
     }
 
     fun saveProfile() {
-        val uid = authRepo.currentUser?.uid ?: return
+        val uid = this.uid ?: return
         val error = Validators.nombre(nombre) ?: Validators.telefono(telefono)
         if (error != null) {
             messageRes = error
@@ -124,7 +128,7 @@ class ProfileViewModel(
     }
 
     fun updatePhoto(bitmap: Bitmap) {
-        val uid = authRepo.currentUser?.uid ?: return
+        val uid = this.uid ?: return
         viewModelScope.launch {
             uploadingPhoto = true
             try {

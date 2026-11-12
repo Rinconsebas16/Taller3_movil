@@ -37,9 +37,12 @@ import com.example.taller_3.viewmodel.ProfileViewModel
 /**
  * Perfil: muestra la informacion guardada en Firestore y la foto de Storage.
  * Permite cambiar nombre y telefono (Firestore), contrasena (Auth) y foto (Storage).
+ *
+ * @param uid usuario a mostrar; llega como parametro de la ruta (equivalente a un extra del Intent).
  */
 @Composable
 fun ProfileScreen(
+    uid: String,
     onBack: () -> Unit,
     vm: ProfileViewModel = viewModel()
 ) {
@@ -47,8 +50,8 @@ fun ProfileScreen(
     val snackbar = remember { SnackbarHostState() }
     val takePhoto = rememberTakePhoto { vm.updatePhoto(it) }
 
-    DisposableEffect(Unit) {
-        vm.start()
+    DisposableEffect(uid) {
+        vm.start(uid)
         onDispose { vm.stop() }
     }
 
