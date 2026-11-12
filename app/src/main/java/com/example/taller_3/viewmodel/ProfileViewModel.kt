@@ -18,7 +18,7 @@ import com.example.taller_3.utils.Validators
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 
-/** Ver y editar el perfil: nombre y telefono (Firestore), contrasena (Auth) y foto (Storage). */
+/** Ver y editar el perfil: nombre y teléfono (Firestore), contraseña (Auth) y foto (Storage). */
 class ProfileViewModel(
     private val authRepo: AuthRepository = AuthRepository(),
     private val userRepo: UserRepository = UserRepository(),
@@ -46,7 +46,7 @@ class ProfileViewModel(
 
     private var listener: ListenerRegistration? = null
 
-    /** uid recibido desde la navegacion (ProfileRoute). */
+    /** uid recibido desde la navegación (ProfileRoute). */
     private var uid: String? = null
 
     /** Empieza a escuchar el documento del usuario. Llamar al entrar a la pantalla. */
@@ -56,7 +56,7 @@ class ProfileViewModel(
         listener = userRepo.observeUser(uid) { updated ->
             val first = user == null
             user = updated
-            // Solo se rellenan los campos la primera vez, para no pisar lo que el usuario esta escribiendo
+            // Solo se rellenan los campos la primera vez, para no pisar lo que el usuario está escribiendo
             if (first && updated != null) {
                 nombre = updated.nombre
                 telefono = updated.telefono

@@ -23,9 +23,9 @@ import coil3.compose.AsyncImage
 import com.example.taller_3.R
 
 /**
- * Barra superior de la pantalla principal con las 2 opciones del menu siempre visibles:
+ * Barra superior de la pantalla principal con las 2 opciones del menú siempre visibles:
  * - Mi perfil: tu foto de perfil (toca para abrir el perfil)
- * - Cerrar sesion: icono de salida
+ * - Cerrar sesión: icono de salida
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +42,7 @@ fun HomeTopBar(
             actionIconContentColor = MaterialTheme.colorScheme.onPrimary
         ),
         actions = {
-            // Opcion 1: Mi perfil (con la foto del usuario)
+            // Opción 1: Mi perfil (con la foto del usuario)
             IconButton(onClick = onProfile) {
                 AsyncImage(
                     model = photoUrl?.ifBlank { null },
@@ -58,7 +58,7 @@ fun HomeTopBar(
                         .border(2.dp, Color.White, CircleShape)
                 )
             }
-            // Opcion 2: Cerrar sesion
+            // Opción 2: Cerrar sesión
             IconButton(onClick = onLogout) {
                 Icon(
                     painter = painterResource(R.drawable.ic_logout),

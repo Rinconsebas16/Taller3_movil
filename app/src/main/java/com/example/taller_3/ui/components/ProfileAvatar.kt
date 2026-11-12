@@ -26,8 +26,8 @@ import coil3.compose.AsyncImage
 import com.example.taller_3.R
 
 /**
- * Foto de perfil circular. Muestra (en orden): la foto recien tomada, la foto de Storage
- * o el avatar por defecto. Si se pasa onClick, aparece el boton de camara.
+ * Foto de perfil circular. Muestra (en orden): la foto recién tomada, la foto de Storage
+ * o el avatar por defecto. Si se pasa onClick, aparece el botón de cámara.
  */
 @Composable
 fun ProfileAvatar(

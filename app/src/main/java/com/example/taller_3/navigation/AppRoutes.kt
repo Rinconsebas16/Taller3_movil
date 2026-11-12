@@ -5,7 +5,7 @@ data object LoginRoute
 data object RegisterRoute
 data object HomeRoute
 /**
- * El perfil recibe el uid del usuario como parametro de la ruta.
+ * El perfil recibe el uid del usuario como parámetro de la ruta.
  * Es el equivalente en Compose a enviar un "extra" en un Intent:
  *   intent.putExtra(EXTRA_USER_ID, uid)  ->  ProfileRoute(uid = uid)
  */

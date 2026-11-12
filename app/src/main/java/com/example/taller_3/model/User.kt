@@ -1,9 +1,9 @@
 package com.example.taller_3.model
 
 /**
- * Documento del usuario en Firestore: coleccion "users", id del documento = uid.
+ * Documento del usuario en Firestore: colección "users", id del documento = uid.
  *
- * - El email y el password los maneja Firebase Authentication. El password NUNCA se guarda aqui.
+ * - El email y el password los maneja Firebase Authentication. El password NUNCA se guarda aquí.
  * - enLinea, latitud y longitud NO se piden en el registro: se inicializan en false / 0.0 / 0.0.
  * - Se usan "var" con valores por defecto para que Firestore pueda crear el objeto con toObject().
  */

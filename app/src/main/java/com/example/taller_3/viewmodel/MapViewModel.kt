@@ -1,12 +1,5 @@
 package com.example.taller_3.viewmodel
 
-/*
-- Estado del mapa: posición propia, ruta propia (List<Point>), switch on/off,
-- mapa de usuarios en línea (uid -> User) y sus rutas (uid -> List<Point>).
-- Al apagar el switch: enLinea=false y se borra la ruta propia.
-- Si otro usuario se desconecta: se quita su marcador y su ruta.
-*/
-
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -28,6 +21,11 @@ import kotlinx.coroutines.launch
 typealias UsersMap = Map<String, User>
 typealias RoutesMap = Map<String, List<Point>>
 
+/**
+ * Estado del mapa: posición y ruta propias, estado del switch, usuarios en línea y sus rutas.
+ * - Al apagar el switch: enLinea = false y se borra la ruta propia.
+ * - Si otro usuario se desconecta: se quitan su marcador y su ruta.
+ */
 class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val locationService = LocationService(application)
@@ -89,7 +87,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
         locationJob = viewModelScope.launch {
             locationService.getLocationUpdates(Constants.LOCATION_INTERVAL_MS).collect { (lat, lng) ->
-                // OJO: Mapbox usa (longitud, latitud)
+                // Mapbox recibe (longitud, latitud)
                 val newPoint = Point.fromLngLat(lng, lat)
                 _currentLocation.value = newPoint
                 _currentRoute.value = _currentRoute.value + newPoint
@@ -116,7 +114,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         if (currentUid != null) {
             viewModelScope.launch {
                 runCatching {
-                    userRepository.updateOnlineStatus(currentUid, false)
+                    userRepository.setOnline(currentUid, false)
                 }
             }
         }
@@ -140,7 +138,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
         val activeUsersMap = users
             .filter { it.uid != currentUid && it.enLinea }
-            .filter { !(it.latitud == 0.0 && it.longitud == 0.0) } // aun sin posición
+            .filter { !(it.latitud == 0.0 && it.longitud == 0.0) } // todavía sin posición
             .associateBy { it.uid }
 
         // Elimina las rutas de los usuarios que ya no están en línea

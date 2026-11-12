@@ -16,7 +16,7 @@ import com.example.taller_3.utils.ImageUtils
 import com.example.taller_3.utils.Validators
 import kotlinx.coroutines.launch
 
-/** Login, registro y cierre de sesion. */
+/** Login, registro y cierre de sesión. */
 class AuthViewModel(
     private val authRepo: AuthRepository = AuthRepository(),
     private val userRepo: UserRepository = UserRepository(),
@@ -36,25 +36,18 @@ class AuthViewModel(
     var errorRes by mutableStateOf<Int?>(null)
         private set
 
-    /** Detalle tecnico del error (solo cuando no hay un mensaje especifico). */
-    var errorDetail by mutableStateOf<String?>(null)
-        private set
-
     fun clearError() {
         errorRes = null
-        errorDetail = null
     }
 
     private fun showError(e: Exception) {
         errorRes = FirebaseErrors.toMessage(e)
-        errorDetail = FirebaseErrors.detail(e)
     }
 
     fun login(onSuccess: () -> Unit) {
         val error = Validators.email(email) ?: Validators.password(password)
         if (error != null) {
             errorRes = error
-            errorDetail = null
             return
         }
         viewModelScope.launch {
@@ -77,7 +70,6 @@ class AuthViewModel(
         val error = Validators.registro(nombre, email, password, telefono)
         if (error != null) {
             errorRes = error
-            errorDetail = null
             return
         }
         viewModelScope.launch {
@@ -93,7 +85,7 @@ class AuthViewModel(
                         User(
                             uid = uid,
                             nombre = nombre.trim(),
-                            // Se usa el email que guardo Auth (normalizado) para que coincida con las reglas
+                            // Se usa el email que guardó Auth (normalizado) para que coincida con las reglas
                             email = authRepo.currentUser?.email ?: email.trim(),
                             telefono = telefono.trim()
                         )
@@ -124,8 +116,8 @@ class AuthViewModel(
     }
 
     /**
-     * Cierra la sesion: primero marca enLinea=false en la base de datos y despues llama a signOut().
-     * El modulo del mapa debe detener las actualizaciones de ubicacion antes de llamar a esto.
+     * Cierra la sesión: primero marca enLinea=false en la base de datos y después llama a signOut().
+     * Antes de llamarla, el mapa detiene el rastreo de ubicación.
      */
     fun logout(onDone: () -> Unit) {
         val uid = authRepo.currentUser?.uid

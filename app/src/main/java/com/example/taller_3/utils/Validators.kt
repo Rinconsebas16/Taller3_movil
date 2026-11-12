@@ -4,7 +4,7 @@ import android.util.Patterns
 import androidx.annotation.StringRes
 import com.example.taller_3.R
 
-/** Cada funcion devuelve el id del string de error, o null si el dato es valido. */
+/** Cada función devuelve el id del string de error, o null si el dato es válido. */
 object Validators {
 
     @StringRes

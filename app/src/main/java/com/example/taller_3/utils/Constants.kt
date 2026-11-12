@@ -15,7 +15,7 @@ object Constants {
     const val PHOTO_MAX_SIZE_PX = 512
     const val PHOTO_JPEG_QUALITY = 80
 
-    // Mapa (modulo del Integrante 2)
+    // Mapa
     const val MAX_ONLINE_USERS = 100L
     const val LOCATION_INTERVAL_MS = 5_000L
 }

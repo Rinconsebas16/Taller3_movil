@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
-// Datos secundarios del usuario en Cloud Firestore (coleccion "users").
+// Datos secundarios del usuario en Cloud Firestore (colección "users").
 class UserRepository {
 
     private val db = FirebaseFirestore.getInstance()
     private val usersCollection = db.collection(Constants.USERS_COLLECTION)
 
-    // Métodos correspondientes a (Auth, Perfil y Registro)
+    // Registro y perfil
 
     suspend fun createUser(user: User) {
         usersCollection.document(user.uid).set(user).await()
@@ -48,7 +48,7 @@ class UserRepository {
         }
     }
 
-    //  Métodos correspondientes a (Mapa, Rastreo y Concurrencia)
+    // Mapa y ubicación en tiempo real
 
     suspend fun updateUserLocation(uid: String, lat: Double, lng: Double, enLinea: Boolean) {
         val updates = mapOf(
@@ -59,12 +59,8 @@ class UserRepository {
         usersCollection.document(uid).update(updates).await()
     }
 
-    suspend fun updateOnlineStatus(uid: String, enLinea: Boolean) {
-        setOnline(uid, enLinea)
-    }
-
     /**
-     * Usuarios EN LINEA en tiempo real (addSnapshotListener), maximo 100.
+     * Usuarios en línea en tiempo real (addSnapshotListener), máximo 100.
      * Cuando alguien se desconecta deja de aparecer en la lista y el mapa lo quita.
      */
     fun getActiveUsersFlow(): Flow<List<User>> = callbackFlow {

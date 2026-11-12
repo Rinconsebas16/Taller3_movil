@@ -78,13 +78,6 @@ fun LoginScreen(
             vm.errorRes?.let {
                 Spacer(Modifier.height(12.dp))
                 Text(stringResource(it), color = MaterialTheme.colorScheme.error)
-                vm.errorDetail?.let { detail ->
-                    Text(
-                        text = detail,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
             }
 
             Spacer(Modifier.height(24.dp))

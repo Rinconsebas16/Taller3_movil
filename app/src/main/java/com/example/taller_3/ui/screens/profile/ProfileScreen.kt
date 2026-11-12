@@ -35,10 +35,10 @@ import com.example.taller_3.ui.screens.camera.rememberTakePhoto
 import com.example.taller_3.viewmodel.ProfileViewModel
 
 /**
- * Perfil: muestra la informacion guardada en Firestore y la foto de Storage.
- * Permite cambiar nombre y telefono (Firestore), contrasena (Auth) y foto (Storage).
+ * Perfil: muestra la información guardada en Firestore y la foto de Storage.
+ * Permite cambiar nombre y teléfono (Firestore), contraseña (Auth) y foto (Storage).
  *
- * @param uid usuario a mostrar; llega como parametro de la ruta (equivalente a un extra del Intent).
+ * @param uid usuario a mostrar; llega como parámetro de la ruta (equivalente a un extra del Intent).
  */
 @Composable
 fun ProfileScreen(
@@ -118,7 +118,7 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth()
             ) { Text(stringResource(R.string.btn_save)) }
 
-            // ---- Contrasena (Auth) ----
+            // ---- Contraseña (Auth) ----
             Spacer(Modifier.height(24.dp))
             HorizontalDivider()
             Spacer(Modifier.height(16.dp))

@@ -23,7 +23,7 @@ class AuthRepository(
     }
 
     /**
-     * Cambio seguro de contrasena: primero se re-autentica con la contrasena actual
+     * Cambio seguro de contraseña: primero se re-autentica con la contraseña actual
      * (Firebase lo exige si el login no es reciente) y luego se llama a updatePassword.
      */
     suspend fun changePassword(currentPassword: String, newPassword: String) {
@@ -34,7 +34,7 @@ class AuthRepository(
         user.updatePassword(newPassword).await()
     }
 
-    /** Borra la cuenta recien creada (se usa si falla guardar sus datos en Firestore). */
+    /** Borra la cuenta recién creada (se usa si falla guardar sus datos en Firestore). */
     suspend fun deleteCurrentUser() {
         try {
             auth.currentUser?.delete()?.await()

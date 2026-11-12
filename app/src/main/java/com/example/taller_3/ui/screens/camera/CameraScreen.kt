@@ -12,7 +12,7 @@ import com.example.taller_3.utils.PermissionUtils
 
 
 /**
- * Devuelve una funcion que abre la camara para tomar la foto de perfil.
+ * Devuelve una función que abre la cámara para tomar la foto de perfil.
  * Pide el permiso CAMERA si hace falta y entrega el Bitmap en onPhoto.
  */
 @Composable

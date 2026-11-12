@@ -29,7 +29,7 @@ import com.example.taller_3.ui.components.ProfileAvatar
 import com.example.taller_3.ui.screens.camera.rememberTakePhoto
 import com.example.taller_3.viewmodel.AuthViewModel
 
-/** Registro: nombre, email, password, telefono y foto. NO pide enLinea, latitud ni longitud. */
+/** Registro: nombre, email, password, teléfono y foto. NO pide enLinea, latitud ni longitud. */
 @Composable
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
@@ -99,13 +99,6 @@ fun RegisterScreen(
             vm.errorRes?.let {
                 Spacer(Modifier.height(12.dp))
                 Text(stringResource(it), color = MaterialTheme.colorScheme.error)
-                vm.errorDetail?.let { detail ->
-                    Text(
-                        text = detail,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
             }
 
             Spacer(Modifier.height(24.dp))

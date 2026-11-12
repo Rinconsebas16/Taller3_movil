@@ -29,8 +29,4 @@ object FirebaseErrors {
         }
         else -> R.string.error_generic
     }
-
-    /** Texto tecnico del error (para mostrarlo debajo del mensaje cuando es un error generico). */
-    fun detail(e: Throwable): String? =
-        if (toMessage(e) == R.string.error_generic) "${e.javaClass.simpleName}: ${e.localizedMessage}" else null
 }
